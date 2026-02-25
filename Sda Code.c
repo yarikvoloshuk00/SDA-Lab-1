@@ -9,13 +9,16 @@ typedef struct {
     int status;
 } ATM;
 
-ATM atms[10];
-int count = 0;
+ATM *atms = NULL;
+int count = 0;  
 
 void addATM();
 void printatms();
 void searchATM();
 void editATM();
+void removeLastATM();
+void freeAllMemory();
+void expandArray(int n);
 
 int main() {
     setlocale(LC_ALL, "Russian");
@@ -27,39 +30,32 @@ int main() {
         printf("2. Вывести все банкоматы\n");
         printf("3. Найти банкомат\n");
         printf("4. Редактировать банкомат\n");
-        printf("0. Выйти\n");
+        printf("5. Удалить последний банкомат\n"); // <-- НОВЫЙ ПУНКТ
+        printf("0. Выход\n");
         printf("Выберите действие: ");
-        scanf("%d", &choice);
+        
+        if (scanf("%d", &choice) != 1) {
+            while(getchar() != '\n'); 
+            choice = -1;
+        }
 
         switch (choice) {
-            case 1:
-                addATM();
+            case 1: addATM(); break;
+            case 2: printatms(); break;
+            case 3: searchATM(); break;
+            case 4: editATM(); break;
+            case 5: removeLastATM(); break;
+            case 0: 
+                freeAllMemory();
+                printf("Выход из программы...\n"); 
                 break;
-            case 2:
-                printatms();
-                break;
-            case 3:
-                searchATM();
-                break;
-            case 4:
-                editATM();
-                break;
-            case 0:
-                printf("Выход из программы.\n");
-                break;
-            default:
-                printf("Неверный выбор. Попробуйте снова.\n");
+            default: printf("Неверный выбор.\n");
         }
     } while (choice != 0);
-
-    return 0;
 }
 
 void addATM() {
-    if (count >= 10) {
-        printf("Ошибка: Память переполнена!\n");
-        return;
-    }
+    expandArray(1);
 
     printf("\n--- Добавление нового банкомата ---\n");
     
@@ -162,4 +158,60 @@ void editATM() {
     if (found == 0) {
         printf("Ошибка: Банкомат с ID %d не найден.\n", id);
     }
+}
+
+void removeLastATM() {
+    if (count == 0) {
+        printf("\nОшибка: Список банкоматов уже пуст!\n");
+        return;
+    }
+
+    if (count == 1) {
+        free(atms);
+        atms = NULL;
+        count = 0;
+    } else {
+        ATM *newAtms = (ATM*)malloc((count - 1) * sizeof(ATM));
+        
+        if (newAtms == NULL) {
+            printf("Критическая ошибка: Не удалось выделить память!\n");
+            exit(1);
+        }
+
+        for (int i = 0; i < count - 1; i++) {
+            newAtms[i] = atms[i];
+        }
+
+        free(atms);
+        atms = newAtms;
+        count--;
+    }
+
+    printf("\nПоследний банкомат успешно удален, память освобождена!\n");
+}
+
+void freeAllMemory() {
+    if (atms != NULL) {
+        free(atms);
+        atms = NULL;
+        count = 0;
+    }
+    printf("\nВся память успешно освобождена!\n");
+}
+void expandArray(int n) {
+    ATM *newAtms = (ATM*)malloc((count + n) * sizeof(ATM));
+    
+    if (newAtms == NULL) {
+        printf("Ошибка: память не выделена!\n");
+        exit(1);
+    }
+
+    if (atms != NULL) {
+        for (int i = 0; i < count; i++) {
+            newAtms[i] = atms[i];
+        }
+        free(atms);
+    }
+
+    atms = newAtms;
 }
