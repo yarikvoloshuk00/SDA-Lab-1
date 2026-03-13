@@ -19,6 +19,9 @@ void editATM();
 void removeLastATM();
 void freeAllMemory();
 void expandArray(int n);
+void sortATMs();
+void insertATMAtPosition();
+void removeATMByIndex();
 
 int main() {
     setlocale(LC_ALL, "Russian");
@@ -30,7 +33,10 @@ int main() {
         printf("2. Вывести все банкоматы\n");
         printf("3. Найти банкомат\n");
         printf("4. Редактировать банкомат\n");
-        printf("5. Удалить последний банкомат\n"); // <-- НОВЫЙ ПУНКТ
+        printf("5. Удалить последний банкомат\n");
+        printf("6. Сортировать банкоматы\n");
+        printf("7. Вставить банкомат на указанную позицию\n");
+        printf("8. Удалить банкомат по индексу\n");
         printf("0. Выход\n");
         printf("Выберите действие: ");
         
@@ -45,6 +51,9 @@ int main() {
             case 3: searchATM(); break;
             case 4: editATM(); break;
             case 5: removeLastATM(); break;
+            case 6: sortATMs(); break;
+            case 7: insertATMAtPosition(); break;
+            case 8: removeATMByIndex(); break;
             case 0: 
                 freeAllMemory();
                 printf("Выход из программы...\n"); 
@@ -214,4 +223,132 @@ void expandArray(int n) {
     }
 
     atms = newAtms;
+}
+
+void sortATMs() {
+    if (count == 0) {
+        printf("\nСписок банкоматов пуст!\n");
+        return;
+    }
+
+    int field;
+    printf("\n--- Сортировка банкоматов ---\n");
+    printf("Выберите поле для сортировки:\n");
+    printf("1. ID\n");
+    printf("2. Наличные\n");
+    printf("3. Лимит\n");
+    printf("4. Статус\n");
+    printf("Ваш выбор: ");
+    scanf("%d", &field);
+
+    for (int i = 0; i < count - 1; i++) {
+        for (int j = 0; j < count - i - 1; j++) {
+            int needSwap = 0;
+
+            switch (field) {
+                case 1:
+                    if (atms[j].id > atms[j + 1].id) needSwap = 1;
+                    break;
+                case 2:
+                    if (atms[j].cash > atms[j + 1].cash) needSwap = 1;
+                    break;
+                case 3:
+                    if (atms[j].limit > atms[j + 1].limit) needSwap = 1;
+                    break;
+                case 4:
+                    if (atms[j].status > atms[j + 1].status) needSwap = 1;
+                    break;
+                default:
+                    printf("Неверное поле для сортировки.\n");
+                    return;
+            }
+
+            if (needSwap) {
+                ATM temp = atms[j];
+                atms[j] = atms[j + 1];
+                atms[j + 1] = temp;
+            }
+        }
+    }
+
+    printf("Сортировка выполнена успешно!\n");
+}
+
+void insertATMAtPosition() {
+    int position;
+
+    printf("\n--- Вставка банкомата на позицию ---\n");
+    printf("Введите позицию для вставки (от 0 до %d): ", count);
+    scanf("%d", &position);
+
+    if (position < 0 || position > count) {
+        printf("Ошибка: неверная позиция.\n");
+        return;
+    }
+
+    expandArray(1);
+
+    for (int i = count; i > position; i--) {
+        atms[i] = atms[i - 1];
+    }
+
+    printf("Введите ID: ");
+    scanf("%d", &atms[position].id);
+
+    printf("Введите наличные: ");
+    scanf("%lf", &atms[position].cash);
+
+    printf("Введите лимит: ");
+    scanf("%lf", &atms[position].limit);
+
+    printf("Введите статус (1 - Активен, 0 - Не работает): ");
+    scanf("%d", &atms[position].status);
+
+    count++;
+    printf("Банкомат успешно вставлен на позицию %d!\n", position);
+}
+
+void removeATMByIndex() {
+    int index;
+
+    if (count == 0) {
+        printf("\nОшибка: список банкоматов пуст!\n");
+        return;
+    }
+
+    printf("\n--- Удаление банкомата по индексу ---\n");
+    printf("Введите индекс для удаления (от 0 до %d): ", count - 1);
+    scanf("%d", &index);
+
+    if (index < 0 || index >= count) {
+        printf("Ошибка: неверный индекс.\n");
+        return;
+    }
+
+    for (int i = index; i < count - 1; i++) {
+        atms[i] = atms[i + 1];
+    }
+
+    if (count - 1 == 0) {
+        free(atms);
+        atms = NULL;
+        count = 0;
+    } else {
+        ATM *newAtms = (ATM*)malloc((count - 1) * sizeof(ATM));
+
+        if (newAtms == NULL) {
+            printf("Ошибка: память не выделена!\n");
+            exit(1);
+        }
+
+        for (int i = 0; i < count - 1; i++) {
+            newAtms[i] = atms[i];
+        }
+
+        free(atms);
+        atms = newAtms;
+        count--;
+    }
+
+    printf("Банкомат по индексу %d успешно удалён!\n", index);
 }
